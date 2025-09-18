@@ -17,9 +17,11 @@ class VirtualPetGame {
         this.caregivers = new Set();
         this.activities = ['play', 'feed', 'sleep', 'pet', 'treat'];
         this.petTypes = ['🐱', '🐶', '🐰', '🐸', '🐹'];
-        
-        // Start periodic pet status updates
-        this.startPetCare();
+		
+		// Start periodic pet status updates (skip during tests)
+		if (process.env.NODE_ENV !== 'test') {
+			this.startPetCare();
+		}
     }
 
     getInstructions() {

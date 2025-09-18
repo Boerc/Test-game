@@ -9,7 +9,12 @@ class ArenaCombatGame {
         this.votingTimer = null;
         this.round = 0;
         this.leaderboard = new Map();
+		this.messageSink = null;
     }
+
+	setMessageSink(sink) {
+		this.messageSink = sink;
+	}
 
     getInstructions() {
         return `Epic battles await! !arena to start, then vote: !attack !defend !magic !special`;
@@ -105,7 +110,7 @@ class ArenaCombatGame {
         return `@${username} voted for ${action}! (${this.actionVotes.size} votes)`;
     }
 
-    startActionVoting() {
+	startActionVoting() {
         this.actionVotes.clear();
         
         // Auto-resolve after 20 seconds
@@ -113,9 +118,12 @@ class ArenaCombatGame {
             clearTimeout(this.votingTimer);
         }
         
-        this.votingTimer = setTimeout(() => {
-            this.resolveBattleTurn();
-        }, 20000);
+		this.votingTimer = setTimeout(() => {
+			const msg = this.resolveBattleTurn();
+			if (msg && this.messageSink) {
+				this.messageSink(msg);
+			}
+		}, 20000);
 
         return `\n🗳️ Vote for action: !attack !defend !magic !special (20 seconds)`;
     }
@@ -148,9 +156,14 @@ class ArenaCombatGame {
         } else if (this.currentBattle.enemy.hp <= 0) {
             result += this.endBattle(true);
         } else {
-            this.currentBattle.turn++;
-            result += this.displayBattleState();
-            setTimeout(() => this.startActionVoting(), 3000);
+			this.currentBattle.turn++;
+			result += this.displayBattleState();
+			setTimeout(() => {
+				const startMsg = this.startActionVoting();
+				if (startMsg && this.messageSink) {
+					this.messageSink(startMsg);
+				}
+			}, 3000);
         }
 
         return result;

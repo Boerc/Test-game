@@ -10,11 +10,18 @@ class TwitchInteractiveGame {
         this.gameController = new GameController();
         this.commandParser = new ChatCommandParser();
         this.isConnected = false;
-        
+		
+		// Route async game messages (from timers) to chat
+		if (typeof this.gameController.setMessageSink === 'function') {
+			this.gameController.setMessageSink((message) => {
+				this.sendMessage(process.env.TWITCH_CHANNEL, message);
+			});
+		}
+
         this.setupTwitchClient();
     }
 
-    setupTwitchClient() {
+	setupTwitchClient() {
         const opts = {
             identity: {
                 username: process.env.TWITCH_USERNAME,
@@ -23,7 +30,12 @@ class TwitchInteractiveGame {
             channels: [process.env.TWITCH_CHANNEL]
         };
 
-        this.client = new tmi.client(opts);
+		// Basic environment validation to aid setup
+		if (!process.env.TWITCH_USERNAME || !process.env.TWITCH_OAUTH_TOKEN || !process.env.TWITCH_CHANNEL) {
+			console.warn('⚠️ Missing Twitch environment variables. Ensure TWITCH_USERNAME, TWITCH_OAUTH_TOKEN, and TWITCH_CHANNEL are set.');
+		}
+
+		this.client = new tmi.Client(opts);
         this.setupEventHandlers();
     }
 
