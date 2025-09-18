@@ -12,7 +12,13 @@ class NumberBattleGame {
             normal: { min: 1, max: 100 },
             hard: { min: 1, max: 500 }
         };
+		this.autoEndTimer = null;
+		this.messageSink = null;
     }
+
+	setMessageSink(sink) {
+		this.messageSink = sink;
+	}
 
     getInstructions() {
         return `Type !guess <number> to make a guess. !numberbattle to start new round. Difficulty: ${this.difficulty}`;
@@ -52,7 +58,20 @@ class NumberBattleGame {
         
         const range = this.ranges[this.difficulty];
         this.targetNumber = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-        
+		
+		// Auto-end after 45 seconds
+		if (this.autoEndTimer) {
+			clearTimeout(this.autoEndTimer);
+		}
+		if (process.env.NODE_ENV !== 'test') {
+			this.autoEndTimer = setTimeout(() => {
+				const msg = this.endRound();
+				if (msg && this.messageSink) {
+					this.messageSink(msg);
+				}
+			}, 45000);
+		}
+		
         return `🎯 Number Battle Round ${this.round} Started!
 🎲 I'm thinking of a number between ${range.min} and ${range.max}
 💡 Type !guess <number> to make your guess!
@@ -111,6 +130,10 @@ class NumberBattleGame {
         if (!this.gameActive) return null;
         
         this.gameActive = false;
+		if (this.autoEndTimer) {
+			clearTimeout(this.autoEndTimer);
+			this.autoEndTimer = null;
+		}
         
         if (this.guesses.size === 0) {
             return "😴 No guesses this round! Type !numberbattle to try again!";

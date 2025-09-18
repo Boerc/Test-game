@@ -72,7 +72,7 @@ A comprehensive Twitch bot featuring 4 interactive games that viewers can contro
 1. **Clone and setup:**
 ```bash
 git clone <your-repo-url>
-cd Test-game
+cd twitch-interactive-game
 npm install
 ```
 

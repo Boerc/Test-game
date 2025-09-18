@@ -1,4 +1,5 @@
 // Simple test to verify game functionality
+process.env.NODE_ENV = process.env.NODE_ENV || 'test';
 const GameController = require('../src/gameController');
 const ChatCommandParser = require('../src/utils/chatCommandParser');
 
