@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "test": "node test/test.js"
+    "test": "node test/test.js",
+    "dry": "DRY_RUN=1 node src/index.js",
+    "dry:watch": "DRY_RUN=1 node --watch src/index.js"
   },
   "keywords": ["twitch", "interactive", "game", "chat", "streaming"],
   "author": "",
