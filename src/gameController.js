@@ -14,6 +14,7 @@ class GameController {
         
         this.currentGame = null;
         this.isGameActive = false;
+		this.messageSink = null;
     }
 
     initialize() {
@@ -25,7 +26,7 @@ class GameController {
         console.log('Type !help for available commands');
     }
 
-    async handleCommand(command, context) {
+	async handleCommand(command, context) {
         const { command: cmd, args, username } = command;
 
         // Global commands
@@ -40,12 +41,22 @@ class GameController {
                 return this.getDetailedStatus();
         }
 
-        // Game selection commands
-        if (this.games[cmd]) {
-            this.currentGame = this.games[cmd];
-            this.isGameActive = true;
-            return `🎮 Starting ${this.currentGame.name}! ${this.currentGame.getInstructions()}`;
-        }
+
+		// Game selection commands
+		if (this.games[cmd]) {
+			this.currentGame = this.games[cmd];
+			this.isGameActive = true;
+			const intro = `🎮 Starting ${this.currentGame.name}!`;
+			try {
+				const startResponse = await this.currentGame.handleCommand({ command: cmd, args, username }, context);
+				if (startResponse) {
+					return `${intro}\n${startResponse}`;
+				}
+			} catch (err) {
+				console.error('Error starting game:', err);
+			}
+			return `${intro} ${this.currentGame.getInstructions()}`;
+		}
 
         // Delegate to current game if active
         if (this.isGameActive && this.currentGame) {
@@ -62,6 +73,15 @@ class GameController {
 
         return `❓ Unknown command '${cmd}'. Type !help for available commands.`;
     }
+
+	setMessageSink(sink) {
+		this.messageSink = sink;
+		for (const game of Object.values(this.games)) {
+			if (typeof game.setMessageSink === 'function') {
+				game.setMessageSink(sink);
+			}
+		}
+	}
 
     getHelpMessage() {
         return `🎮 Twitch Interactive Games Help:

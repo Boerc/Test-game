@@ -72,7 +72,7 @@ A comprehensive Twitch bot featuring 4 interactive games that viewers can contro
 1. **Clone and setup:**
 ```bash
 git clone <your-repo-url>
-cd Test-game
+cd twitch-interactive-game
 npm install
 ```
 
@@ -92,6 +92,27 @@ COMMAND_PREFIX=!
 4. **Start the bot:**
 ```bash
 npm start
+```
+
+### Dry-Run Console Mode (no Twitch required)
+
+Use this to test locally without Twitch credentials.
+
+```bash
+npm run dry
+# Then type lines like:
+# alice: !help
+# alice: !adventure
+# bob: !choice A
+# carol: !numberbattle
+# dave: !guess 42
+# Type 'exit' to quit
+```
+
+You can also pass the flag directly:
+
+```bash
+node src/index.js --dry-run
 ```
 
 ### Getting Twitch Credentials

@@ -6,6 +6,7 @@ class AdventureGame {
         this.votingActive = false;
         this.votingTimer = null;
         this.players = new Set();
+		this.messageSink = null;
         
         this.story = [
             {
@@ -33,6 +34,10 @@ class AdventureGame {
                 }
             }
         ];
+    }
+
+    setMessageSink(sink) {
+        this.messageSink = sink;
     }
 
     getInstructions() {
@@ -83,18 +88,23 @@ class AdventureGame {
         return message;
     }
 
-    startVoting() {
+	startVoting() {
         this.votingActive = true;
         this.votes.clear();
-        
+		
         // Auto-advance after 30 seconds
         if (this.votingTimer) {
             clearTimeout(this.votingTimer);
         }
-        
-        this.votingTimer = setTimeout(() => {
-            this.resolveVoting();
-        }, 30000);
+		
+		if (process.env.NODE_ENV !== 'test') {
+			this.votingTimer = setTimeout(() => {
+				const msg = this.resolveVoting();
+				if (msg && this.messageSink) {
+					this.messageSink(msg);
+				}
+			}, 30000);
+		}
 
         return "⏰ Voting started! You have 30 seconds to choose.";
     }
@@ -144,9 +154,16 @@ class AdventureGame {
         let result = `🎯 Voting Results: ${winner} wins! (A:${voteCount.A} B:${voteCount.B} C:${voteCount.C})\n`;
         result += `✨ You chose: ${chosenAction}\n`;
         
-        if (this.currentScene < this.story.length) {
-            result += "\n" + this.getCurrentScene();
-            setTimeout(() => this.startVoting(), 2000);
+		if (this.currentScene < this.story.length) {
+			result += "\n" + this.getCurrentScene();
+			if (process.env.NODE_ENV !== 'test') {
+				setTimeout(() => {
+					const startMsg = this.startVoting();
+					if (startMsg && this.messageSink) {
+						this.messageSink(startMsg);
+					}
+				}, 2000);
+			}
         } else {
             result += "\n🎉 Adventure Complete! Type !adventure to play again!";
         }
